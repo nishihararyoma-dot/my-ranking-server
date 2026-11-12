@@ -58,20 +58,11 @@ http.createServer((req, res) => {
         return res.end(JSON.stringify({ error: 'missing data' }));
       }
       const newScore = {
-        id: fnv(o.n + '|' + o.t + '|' + (o.ts || Date.now())),
+        id: fnv(o.n + '|' + o.t + '|' + (o.ts || Date.now()) + '|' + Math.random()),
         n: o.n, s: Number(o.s || 0), t: Number(o.t), b: o.b, d: o.d, k: o.k, c: o.c, ts: o.ts || Date.now(),
         g: Number(o.g || 0), kl: Number(o.kl || 0), es: Number(o.es || 0), h: Number(o.h || 0), bm: Number(o.bm || 0)
       };
-      if (scores.some(x => x.id === newScore.id)) {
-        res.writeHead(200, Object.assign({ 'Content-Type': 'application/json' }, cors));
-        return res.end(JSON.stringify({ ok: true, dup: true }));
-      }
-      const idx = scores.findIndex(x => x.n === newScore.n);
-      if (idx !== -1) {
-        if (newScore.t < scores[idx].t) { scores[idx] = newScore; }
-      } else {
-        scores.push(newScore);
-      }
+      scores.push(newScore);
       if (scores.length > 5000) { scores.sort((a, b) => a.t - b.t); scores.length = 5000; }
       save();
       res.writeHead(200, Object.assign({ 'Content-Type': 'application/json' }, cors));
