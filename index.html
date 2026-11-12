@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>NEON SHRINE — 弾幕STG</title>
+<title>NEON SHRINE ― 弾幕STG</title>
+
+<link rel="manifest" href="manifest.json">
+
+<link rel="apple-touch-icon" href="icon.png">
+
 <style>
   html, body{
     margin:0; padding:0; overflow:hidden;
@@ -319,7 +324,7 @@
   .hidden{ display:none !important; }
   /* in-game action buttons: slightly see-through so they hide less of the playfield */
   #bombBtn, #emergencyBtn, #awakenBtn, #pauseBtn, #finalBossBtn{ opacity:0.75; }
-  /* developer mode (tap the title logo) */
+  /* developer mode (enter the secret name in the account name field) */
   #titleLogo{ -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
   #devBadge{ font-size:9px; letter-spacing:0.2em; color:#9fffd0; opacity:0.3; margin:0 0 8px; }
   #devOverlay{
@@ -522,12 +527,15 @@
   <div><button id="rankCopyBtn" class="smallbtn">コピー</button></div>
   <textarea id="rankCardIn" rows="3" placeholder="もらったスコアカードのコードを貼り付け"></textarea>
   <div><button id="rankImportBtn" class="smallbtn">取り込む</button></div>
-  <div class="ranksec">オンライン(上級)</div>
-  <div style="font-size:11px;color:#8f88b3;max-width:320px;">ranking-server.js を動かしたサーバーのURLを入れると、みんなの記録が1つのランキングになります。未設定ならこの機能は使われません。</div>
+  <div class="ranksec">オンラインランキング</div>
+  <div style="font-size:11px;color:#8f88b3;max-width:320px;">オンライン機能をONにすると、みんなの記録が1つのランキングになります。</div>
   <div style="margin-top:6px;display:flex;gap:6px;justify-content:center;">
-    <input id="rankUrl" type="text" placeholder="https://(サーバーのURL)">
-    <button id="rankUrlSave" class="smallbtn">保存</button>
+    <button id="onlineOnBtn" class="smallbtn">ONにする</button>
+    <button id="onlineOffBtn" class="smallbtn">OFFにする</button>
     <button id="rankRefreshBtn" class="smallbtn">更新</button>
+  </div>
+  <div style="margin-top:8px;">
+    <a href="https://neon-shrine.onrender.com/scores" target="_blank" style="font-size:12px;color:#7dfcff;text-decoration:underline;">ランキングデータを確認する</a>
   </div>
   <div id="rankNotice"></div>
   <div id="rankMsg"></div>
@@ -573,7 +581,7 @@
     <button class="diff-btn" data-devboss="20">20戦目</button>
     <button class="diff-btn" data-devboss="50">50戦目</button>
   </div>
-  <div style="font-size:11px;color:#8f88b3;margin-top:5px;max-width:310px;">最初のボスのHPとスペル枚数がその戦目のものになり、以降も1戦ごとに増えます(スペル1枚 = 46 + 20×戦目、使い魔スペルは2倍、枚数は3〜5)</div>
+  <div style="font-size:11px;color:#8f88b3;margin-top:5px;max-width:310px;">最初のボスのHPとスペル枚数がその戦目のものになり、以降も1戦ごとに増えます(スペル1枚 = 46 + 20×戦目、使い魔スペルは2倍、枚数は3～5)</div>
 
   <div class="section-label" style="margin-top:14px;">HP倍率(難易度ごとの基準HPにさらに掛かります)</div>
   <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
@@ -670,7 +678,7 @@
   <div id="stagePanel" style="margin-top:14px;">
     <div class="section-label">出現させる敵と数(0で出現なし)</div>
     <div id="stageEnemyList"></div>
-    <div id="stageTotalLabel" style="font-size:12px;color:#ffe9b0;margin-top:8px;">合計 0体 — 全て倒すとクリア</div>
+    <div id="stageTotalLabel" style="font-size:12px;color:#ffe9b0;margin-top:8px;">合計 0体 ― 全て倒すとクリア</div>
     <div style="margin-top:10px;">
       <label style="font-size:12px;color:#cfc9e8;">出現間隔(秒)
         <input id="trainSpawnInterval" type="number" min="0.2" max="4" step="0.1" value="1.1" style="width:56px;padding:5px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.06);color:#fff;text-align:center;margin-left:6px;">
@@ -882,7 +890,7 @@
     charImageBtn.textContent = '自機の画像を選ぶ';
   });
 
-  // custom enemy image — applies to all regular enemies (not the boss)
+  // custom enemy image ― applies to all regular enemies (not the boss)
   let customEnemyImage = null;
   const enemyImageInput = document.getElementById('enemyImageInput');
   const enemyImageResetBtn = document.getElementById('enemyImageResetBtn');
@@ -933,7 +941,7 @@
 
   function updateStageTotalLabel(){
     const total = Object.values(trainingConfig.stageEnemies).reduce((a,b)=>a+(b||0),0);
-    stageTotalLabel.textContent = '合計 ' + total + '体 — 全て倒すとクリア';
+    stageTotalLabel.textContent = '合計 ' + total + '体 ― 全て倒すとクリア';
   }
 
   function renderSpellSequence(){
@@ -941,7 +949,7 @@
     if(trainingConfig.bossSpells.length===0){
       const empty = document.createElement('div');
       empty.style.cssText='font-size:11.5px;color:#8f88b3;';
-      empty.textContent='(未選択 — 上のボタンをタップして追加)';
+      empty.textContent='(未選択 ― 上のボタンをタップして追加)';
       bossSpellSequence.appendChild(empty);
       return;
     }
@@ -1007,7 +1015,7 @@
     });
   }
 
-  // ---------- developer mode (tap the title logo) ----------
+  // ---------- developer mode (enter the secret name in the account name field) ----------
   const devOverlay = document.getElementById('devOverlay');
   const devBadge = document.getElementById('devBadge');
   function updateDevBadge(){
@@ -1016,43 +1024,12 @@
       devConfig.shots!==2 || devConfig.amulets!==2 || devConfig.bombs!==3 || !cheatInvincible || !cheatBarrier || invincibleMode || alwaysAwaken;
     devBadge.classList.toggle('hidden', !on);
   }
-  // hidden entry, in two stages, with no hint and no feedback (nothing on screen changes) until it opens:
-  //   stage 1: tap the logo 5 times, each within 1s of the previous tap
-  //   stage 2: within 2s per step, tap the four screen corners clockwise (top-left, top-right, bottom-right, bottom-left)
-  // any slip (wrong corner, a tap elsewhere, too slow) starts over from stage 1
-  let devStage = 0, devStep = 0, devLast = 0;
-  const DEV_CORNERS = ['tl','tr','br','bl'];
-  function cornerOf(x, y){
-    const m = 72, w = window.innerWidth, h = window.innerHeight;
-    const l = x<m, r = x>w-m, t = y<m, b = y>h-m;
-    if(t && l) return 'tl'; if(t && r) return 'tr'; if(b && r) return 'br'; if(b && l) return 'bl';
-    return null;
-  }
   function openDevPanel(){
-    devStage = 0; devStep = 0;
     overlay.classList.add('hidden');
     devOverlay.classList.remove('hidden');
     unlock('cheat_found', { menu:true });
   }
-  document.getElementById('titleLogo').addEventListener('click', ()=>{
-    const now = Date.now();
-    // a logo tap always (re)starts stage 1: it is the first tap, or the next one if the run is still alive
-    devStep = (devStage===0 && now - devLast <= 1000) ? devStep + 1 : 1;
-    devStage = 0;
-    devLast = now;
-    if(devStep >= 5){ devStage = 1; devStep = 0; }
-  });
-  overlay.addEventListener('click', (e)=>{
-    if(devStage!==1) return;
-    if(e && e.target && e.target.id==='titleLogo') return;     // the tap that finished stage 1 bubbles up from the logo
-    const now = Date.now();
-    if(now - devLast > 2000){ devStage = 0; devStep = 0; return; }
-    const c = cornerOf(e.clientX, e.clientY);
-    if(c===DEV_CORNERS[devStep]){
-      devLast = now; devStep++;
-      if(devStep>=4) openDevPanel();
-    } else { devStage = 0; devStep = 0; }
-  });
+
   document.getElementById('devCloseBtn').addEventListener('click', ()=>{
     devOverlay.classList.add('hidden');
     overlay.classList.remove('hidden');
@@ -1088,7 +1065,7 @@
   const achToast = document.getElementById('achToast');
   let achToastTimer = null;
   function showAchToast(name, cheat){
-    achToast.textContent = '🏆 実績解除: ' + name + (cheat ? '（ズル）' : '');
+    achToast.textContent = '🏆 実績解除: ' + name + (cheat ? '（Auto）' : '');
     achToast.classList.remove('hidden');
     clearTimeout(achToastTimer);
     achToastTimer = setTimeout(function(){ achToast.classList.add('hidden'); }, 2800);
@@ -1098,7 +1075,7 @@
     const rows = ACH.map(function(a){
       const u = ach[a.id];
       let mark, name, desc, cls;
-      if(u){ got++; mark = u.cheat ? '✔<span class="achcheat">ズル</span>' : '✔'; name = a.name; desc = a.desc; cls = 'got'; }
+      if(u){ got++; mark = u.cheat ? '✔<span class=\"achcheat\">Auto</span>' : '✔'; name = a.name; desc = a.desc; cls = 'got'; }
       else if(a.hidden){ mark = '？'; name = '？？？'; desc = '条件は秘密'; cls = 'lock'; }
       else { mark = '□'; name = a.name; desc = a.desc; cls = 'lock'; }
       return '<div class="achrow ' + cls + '"><span class="achmark">' + mark + '</span><div><div class="achname">' + name + '</div><div class="achdesc">' + desc + '</div></div></div>';
@@ -1125,8 +1102,8 @@
   const rankMsg = document.getElementById('rankMsg');
   const rankCardOut = document.getElementById('rankCardOut');
   const rankCardIn = document.getElementById('rankCardIn');
-  const rankUrl = document.getElementById('rankUrl');
-  const rankCheatToggle = document.getElementById('rankCheatToggle');
+  rankCardOut.addEventListener('click', function() { this.select(); });
+    const rankCheatToggle = document.getElementById('rankCheatToggle');
   const rankNotice = document.getElementById('rankNotice');
   const profileTag = document.getElementById('profileTag');
   let rankDiff = 'all', rankCat = 'score', rankReverse = false, rankShowCheat = true, accDelArmed = { id:null, t:0 };
@@ -1154,6 +1131,12 @@
     }
   });
   document.getElementById('accCreateBtn').addEventListener('click', function(){
+    if(accName.value.trim() === 'バナナおいしそう'){
+      accName.value = ''; accMsg.textContent = '';
+      accOverlay.classList.add('hidden');
+      openDevPanel();
+      return;
+    }
     const r = createProfile(accName.value);
     if(r.ok){ accName.value = ''; updateProfileTag(); renderAcc(); accMsg.textContent = '作成して切り替えました: ' + curName(); }
     else accMsg.textContent = r.msg;
@@ -1184,12 +1167,33 @@
         '<span class="rkmeta">' + (rankCat==='score' ? '' : 'スコア ' + e.s.toLocaleString() + ' ／ ') + String(e.d).toUpperCase() + ' ／ 生存 ' + fmtTime(e.t) + ' ／ ボス ' + e.b + tags + '</span></div>';
     }).join('') + (skipped>0 ? '<div class="rankempty">この項目のデータがない記録(古い記録・クリアしていない記録など) ' + skipped + '件は表示していません</div>' : '') : '<div class="rankempty">' + (skipped>0 ? 'この項目の記録がまだありません' : 'まだ記録がありません') + '</div>';
   }
-  function copyCard(){
+    function copyCard(){
     const text = rankCardOut.value; if(!text) return;
-    let done = false;
-    try{ if(typeof navigator!=='undefined' && navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text); done = true; } }catch(e){}
-    if(!done){ try{ rankCardOut.select(); done = !!(document.execCommand && document.execCommand('copy')); }catch(e){} }
-    rankMsg.textContent = done ? 'コピーしました。友達に送ってください' : '上のコードを選択してコピーしてください';
+    try {
+        navigator.clipboard.writeText(text).then(function() {
+            rankMsg.textContent = 'コピーしました。友達に送ってください';
+        }).catch(function(err) {
+            console.error('Clipboard API failed', err);
+            // Fallback for older browsers or restricted environments
+            rankCardOut.select();
+            if (document.execCommand('copy')) {
+                rankMsg.textContent = 'コピーしました。友達に送ってください';
+            } else {
+                rankMsg.textContent = '上のコードを選択してコピーしてください';
+            }
+        });
+    } catch(e) {
+        rankCardOut.select();
+        try {
+            if (document.execCommand('copy')) {
+                rankMsg.textContent = 'コピーしました。友達に送ってください';
+            } else {
+                rankMsg.textContent = '上のコードを選択してコピーしてください';
+            }
+        } catch (err) {
+            rankMsg.textContent = '上のコードを選択してコピーしてください';
+        }
+    }
   }
   rankList.addEventListener('click', function(e){
     const t = e && e.target; if(!t || !t.getAttribute) return;
@@ -1238,10 +1242,24 @@
     rankCheatToggle.textContent = 'ズル込み：' + (rankShowCheat ? 'ON' : 'OFF');
     renderRank();
   });
-  document.getElementById('rankUrlSave').addEventListener('click', function(){
-    lsSet('neonShrineRankUrl', rankUrl.value.trim());
-    rankMsg.textContent = rankUrl.value.trim() ? 'URLを保存しました。「更新」で取得します' : 'オンラインを使わない設定にしました';
-    if(!rankUrl.value.trim()){ onlineCards = []; renderRank(); }
+  const onlineOnBtn = document.getElementById('onlineOnBtn');
+  const onlineOffBtn = document.getElementById('onlineOffBtn');
+  function updateOnlineButtons() {
+      const enabled = lsGet('neonShrineOnlineEnabled', 'true') === 'true';
+      onlineOnBtn.style.background = enabled ? 'rgba(125,252,255,0.4)' : 'rgba(255,255,255,0.08)';
+      onlineOffBtn.style.background = !enabled ? 'rgba(255,138,226,0.4)' : 'rgba(255,255,255,0.08)';
+  }
+  onlineOnBtn.addEventListener('click', function(){
+    lsSet('neonShrineOnlineEnabled', 'true');
+    updateOnlineButtons();
+    rankMsg.textContent = 'オンラインランキングをONにしました。「更新」で取得します';
+    updateRankNotice();
+  });
+  onlineOffBtn.addEventListener('click', function(){
+    lsSet('neonShrineOnlineEnabled', 'false');
+    updateOnlineButtons();
+    rankMsg.textContent = 'オンライン機能をOFFにしました';
+    onlineCards = []; renderRank();
     updateRankNotice();
   });
   document.getElementById('rankRefreshBtn').addEventListener('click', function(){
@@ -1250,7 +1268,7 @@
   });
   document.getElementById('rankBtn').addEventListener('click', function(){
     overlay.classList.add('hidden'); rankOverlay.classList.remove('hidden');
-    rankUrl.value = onlineBase(); rankMsg.textContent = ''; updateRankNotice(); renderRank();
+    rankMsg.textContent = ''; updateOnlineButtons(); updateRankNotice(); renderRank();
     if(onlineBase()){ rankMsg.textContent = '取得中…(サーバーが眠っている場合は最大1分ほどかかります)'; fetchOnline().then(function(r){ rankMsg.textContent = r.msg; renderRank(); }); }
   });
   document.getElementById('rankCloseBtn').addEventListener('click', function(){
@@ -1372,6 +1390,7 @@
   let bossesDefeated = 0;
   let allies = [], allyBeams = [];   // awakening: 3 orbiting allies and their beam flashes
   let alwaysAwaken = false;           // cheat mode: awakening never runs out
+  let usedEmergency = false;          // 緊急破壊ペナルティ用フラグ
   // developer mode (opened by tapping the title logo): settings for normal runs, read from the next START on.
   // Everything at its default = the game exactly as before. Training mode has its own separate settings.
   const devConfig = { spawnMult:1, level:1, bossStart:1, enemyHpMult:1, bossHpMult:1, finalHpMult:1, shots:2, amulets:2, bombs:3 };
@@ -1428,7 +1447,7 @@
   function curName(){ const p = profiles.find(function(x){ return x.id===curProfile; }); return p ? p.name : 'ゲスト'; }
   function createProfile(name){
     const n = String(name||'').trim();
-    if(!n || n.length>12) return { ok:false, msg:'名前は1〜12文字で入力してください' };
+    if(!n || n.length>12) return { ok:false, msg:'名前は1～12文字で入力してください' };
     if(profiles.some(function(p){ return p.name===n; })) return { ok:false, msg:'同じ名前のアカウントがあります' };
     if(profiles.length>=8) return { ok:false, msg:'アカウントは8つまでです' };
     const id = 'p' + Date.now().toString(36) + Math.floor(Math.random()*1296).toString(36);
@@ -1510,7 +1529,7 @@
   }
   // ----- ranking categories. Every one can be shown best-first or reversed (worst first) -----
   //   score        higher is better
-  //   time         clear time — only runs that cleared the game have one; lower (faster) is better
+  //   time         clear time ― only runs that cleared the game have one; lower (faster) is better
   //   graze rate   grazes per minute survived; higher is better
   //   kill rate    kills / (kills + escapes); higher is better
   //   hits taken   fewer is better          bombs used   fewer is better
@@ -1555,8 +1574,7 @@
   //   ranking screen go online. A URL a player saves in the ranking screen always wins over this value, and saving an
   //   EMPTY URL there switches online off for that player.
   const DEFAULT_RANK_URL = 'https://neon-shrine.onrender.com';
-  // accepts the address with or without a trailing slash or a trailing /scores (the game adds /scores itself)
-  function onlineBase(){ return String(lsGet('neonShrineRankUrl', DEFAULT_RANK_URL)||'').trim().replace(/\/+$/,'').replace(/\/scores$/,'').replace(/\/+$/,''); }
+  function onlineBase(){ return (lsGet('neonShrineOnlineEnabled', 'true') === 'true') ? DEFAULT_RANK_URL : ''; }
   // free hosting plans put a server to sleep when idle, and waking it can take up to a minute: wait for it
   const RANK_TIMEOUT = 45000;
   // a server that lost its data (free plans can reset their disk) gets this device's records posted again.
@@ -1576,6 +1594,11 @@
   }
   function submitOnline(card){
     const u = onlineBase(); if(!u || !card) return Promise.resolve(false);
+    if(card.c && card.c.some(function(c){ return c !== 'オート'; })) return Promise.resolve(false);
+    let submitName = card.n;
+    if(card.c && card.c.includes('オート') && submitName.indexOf('[Auto]') === -1){
+        submitName += ' [Auto]';
+    }
     const body = JSON.stringify({ n:card.n, s:card.s, t:card.t, b:card.b, d:card.d, k:card.k, c:card.c, ts:card.ts, g:card.g, kl:card.kl, es:card.es, h:card.h, bm:card.bm });
     const once = function(){ return fetchT(u + '/scores', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:body }, RANK_TIMEOUT).then(function(r){ return r.ok; }); };
     // one more try a few seconds later if it fails
@@ -1593,6 +1616,7 @@
     }).catch(function(){ return { ok:false, msg:'サーバーに接続できませんでした' }; });
   }
   function saveRun(cleared){
+    if(usedEmergency) return null;
     const e = { score:Math.floor(score), time:Math.round(time*10)/10, boss:bossesDefeated, diff:selectedDiff, cleared:!!cleared, cheats:stats.cheats.slice(), ts:Date.now(),
       g:stats.graze, kl:stats.killTotal, es:stats.escapes, h:stats.hits, bm:stats.bombs };
     runs.push(e); runs.sort(function(a,b){ return b.score-a.score; }); runs = runs.slice(0,30);
@@ -1636,7 +1660,7 @@
       devConfig.bossHpMult!==1 || devConfig.finalHpMult!==1 || devConfig.shots!==2 || devConfig.amulets!==2 || devConfig.bombs!==3;
   }
   // which cheats a run uses, decided when the run starts (all of them are switched on the title screen).
-  // A cheat run still earns records and achievements — they are just stamped as cheat ones.
+  // A cheat run still earns records and achievements ― they are just stamped as cheat ones.
   function detectCheats(){
     const c = [];
     if(invincibleMode) c.push('無敵');
@@ -1651,7 +1675,15 @@
   function unlock(id, opt){
     opt = opt || {};
     if(isTraining && !opt.training && !opt.menu) return;   // training only counts for its own achievement; menu ones work anywhere
-    const cheat = opt.menu ? false : stats.cheats.length>0;
+    if(usedEmergency && !opt.menu) return; // 緊急破壊ペナルティ
+
+    const cheats = stats.cheats || [];
+    const hasForbiddenCheat = cheats.some(function(c){ return c !== 'オート'; });
+    const hasAuto = cheats.includes('オート');
+
+    if (hasForbiddenCheat && !opt.menu) return; 
+    
+    const cheat = opt.menu ? false : hasAuto; 
     const cur = ach[id];
     if(cur && (!cur.cheat || cheat)) return;
     ach[id] = { cheat:cheat };
@@ -1704,6 +1736,7 @@
     saveCum();
   }
   function recordBest(){
+    if(usedEmergency) return false;
     if(stats.cheats.length>0){
       if(time>bestCheat){ bestCheat = time; lsSet(pkey('neonShrineBestCheat'), bestCheat.toFixed(2)); return true; }
     } else if(time>best){
@@ -1739,8 +1772,11 @@
     L.push('<b>スコア内訳</b>敵 ' + pc('enemy') + '% ボス ' + pc('boss') + '% グレイズ ' + pc('graze') + '% 時間 ' + pc('time') + '% アイテム ' + pc('item') + '% ／ 最終倍率 ×' + scoreMultiplier());
     if(tag) L.push('<b>称号</b>「' + tag + '」');
     L.push('<b>ベスト</b>生存 ' + (best>0 ? fmtTime(best) : '-') + (bestCheat>0 ? '（ズル込み ' + fmtTime(bestCheat) + '）' : ''));
-    if(st.cheats.length) L.push('<span class="rscheat">ズル使用: ' + st.cheats.join(' / ') + '</span>');
-    if(st.unlocked.length) L.push('<span class="rsach">NEW 実績解除: ' + st.unlocked.map(function(u){ return esc(u.name) + (u.cheat ? '（ズル）' : ''); }).join(' / ') + '</span>');
+    if(st.cheats.length) {
+        const displayCheats = st.cheats.map(function(c){ return c === 'オート' ? 'Auto' : c; });
+        L.push('<span class="rscheat">使用機能: ' + displayCheats.join(' / ') + '</span>');
+    }
+    if(st.unlocked.length) L.push('<span class=\"rsach\">NEW 実績解除: ' + st.unlocked.map(function(u){ return esc(u.name) + (u.cheat ? '（Auto）' : ''); }).join(' / ') + '</span>');
     return '<span class="rs">' + L.join('<br>') + '</span>';
   }
   function awakenInvincible(){ return !(alwaysAwaken && !cheatInvincible); }
@@ -1754,7 +1790,7 @@
   let scoreBaseMult = 1; // training-mode starting score multiplier (x1..x32); normal play is always x1
   let isTraining = false;
   let quickMode = null; // 'stageOnly' | 'bossRush' | null
-  let stageOnlyPowerLevel = 0; // 0, 2, or 3 — preset enemy power level for stage-only mode
+  let stageOnlyPowerLevel = 0; // 0, 2, or 3 ― preset enemy power level for stage-only mode
   let trainingConfig = { mode:'stage', bossSpells:['spiral','fan','ring'], stageEnemies:{}, lives:3, bombs:3, spawnInterval:1.1, enemyLevel:0, useFinalBoss:false, scoreMult:1, enemyHpMult:1, bossHpMult:1, finalHpMult:1 };
   let trainingSpawnQueue = [];
   let trainingSpawnIndex = 0;
@@ -1767,7 +1803,7 @@
   ];
 
   // pool of spell-card definitions; each boss fight picks 3 in sequence, escalating with bossNumber
-  // one entry per attack TYPE — a boss never repeats a type within a single fight
+  // one entry per attack TYPE ― a boss never repeats a type within a single fight
   function makeCardPool(){
     return [
       { name:'「宵闇乱舞」',   type:'spiral' },
@@ -1794,6 +1830,7 @@
     document.querySelectorAll('.speed-btn').forEach(b=>b.classList.toggle('selected', b.dataset.speed==='1'));
     time=0; score=0; bullets=[]; lasers=[]; playerShots=[]; enemies=[]; items=[]; particles=[];
     shake=0; flashAlpha=0; boss=null; bossNumber = isTraining ? 0 : Math.max(0,(devConfig.bossStart||1)-1); nextBossAt=24; bannerTimer=0; spawnTimerFairy=0;
+    usedEmergency = false;
     stageKills=0; stageKillTarget=16; stageStartTime=0; nextLifeScore=10000; permanentEscapes=0; bossesDefeated=0;
     player.x=W/2; player.y=H*0.75; player.tx=player.x; player.ty=player.y;
     player.lives=DIFF.lives; player.bombs = isTraining ? 3 : (devConfig.bombs||3); player.emergencyCd=0; player.awakening=0; player.invincible=1.5; player.fireCd=0; player.homingCd=0;
@@ -1863,7 +1900,7 @@
   }
 
   // ---------- ambient spawners (pre-boss "stage") ----------
-  // ambient pre-boss danmaku removed — stage bullets now come only from enemies
+  // ambient pre-boss danmaku removed ― stage bullets now come only from enemies
   function buildSpawners(){
     return [];
   }
@@ -1905,7 +1942,7 @@
       });
     } else if(type==='bomber'){
       // tougher than the old stage version, and now actively homes in on the
-      // player instead of just drifting — a real threat that bursts into a
+      // player instead of just drifting ― a real threat that bursts into a
       // bullet ring when finally destroyed
       enemies.push({
         type:'bomber', x:bx, y:by, vx:0, vy:0,
@@ -1972,7 +2009,7 @@
     }
     if(type==='blitzer'){
       // extremely fast, and now sprays a dense trailing curtain of bullets as
-      // it streaks across — a fast-moving danmaku source, not just a dodge check
+      // it streaks across ― a fast-moving danmaku source, not just a dodge check
       const fromLeft = Math.random()<0.5;
       const y = 40+Math.random()*H*0.55;
       enemies.push({
@@ -1982,7 +2019,7 @@
       return;
     }
     if(type==='guardian'){
-      // a heavy escort with far more HP than anything else on the stage —
+      // a heavy escort with far more HP than anything else on the stage ―
       // slow, tanky, and fires a double ring (fast inner + slow outer)
       enemies.push({
         type, x: 70+Math.random()*(W-140), y:-46, vx:0, vy:18,
@@ -1992,7 +2029,7 @@
       return;
     }
     if(type==='wall'){
-      // a literal blocker enemy — huge fixed HP, drifts down slowly, barely moves
+      // a literal blocker enemy ― huge fixed HP, drifts down slowly, barely moves
       // sideways, and has a chance to drop a bomb pickup when finally destroyed
       enemies.push({
         type, x: 70+Math.random()*(W-140), y:-52, vx:0, vy:14,
@@ -2001,13 +2038,13 @@
       });
       return;
     }
-    // stage waves are smaller and less frequent than before — but when a
+    // stage waves are smaller and less frequent than before ― but when a
     // specific type was explicitly requested (training mode's per-type
     // count), spawn exactly ONE so "5 configured" really means 5 on screen,
     // not 5 groups of 3-5
     const n = forceType ? 1 : 3+Math.floor(Math.random()*3);
-    // give the entrance itself some personality — column drop, V-formation fan-out,
-    // or a diagonal sweep in from the side — instead of every wave looking the same
+    // give the entrance itself some personality ― column drop, V-formation fan-out,
+    // or a diagonal sweep in from the side ― instead of every wave looking the same
     const spread = type==='spread';
     const formation = ['column','vshape','sidesweep'][Math.floor(Math.random()*3)];
 
@@ -2115,7 +2152,7 @@
     player.invincible = Math.max(player.invincible, 1.3);
   }
   function startFinalBoss(){
-    // the ultimate boss — uses every spell type in the game, each at
+    // the ultimate boss ― uses every spell type in the game, each at
     // drastically inflated HP, as the true endgame test
     const pool = makeCardPool();
     const shuffled = pool.slice();
@@ -2171,9 +2208,9 @@
     const card = boss.cards[boss.cardIndex];
     if(card.t0===undefined && !boss.intro){ card.t0 = time; card.bombs0 = stats.bombs; card.aw0 = stats.awakens; }
     const isFinal = !!boss.isFinalBoss;
-    // the last boss gets every spell's effect doubled — implemented as double
+    // the last boss gets every spell's effect doubled ― implemented as double
     // the timer's progress, so every pattern fires (or bursts, or ticks) twice
-    // as often — but bullet speed is specifically slowed down to compensate
+    // as often ― but bullet speed is specifically slowed down to compensate
     card.timer += dt * (isFinal ? 2 : 1);
     boss.angle += dt;
     boss.x += Math.sin(time*0.6)*boss.vx*dt*0.02;
@@ -2181,7 +2218,7 @@
     const speedMul = DIFF.bulletSpeed * (isFinal ? 0.6 : 1);
 
     // some cards make the boss throw out afterimage clones that fire the same
-    // pattern from staggered positions — multiplies the effective bullet volume
+    // pattern from staggered positions ― multiplies the effective bullet volume
     // and kills the single fixed "safe lane" these patterns used to have
     const CLONE_COUNTS = { chase:3, homing:5, laser:3, splitter:3 };
     const cloneCount = CLONE_COUNTS[card.type] || 0;
@@ -2268,7 +2305,7 @@
         break;
       }
       case 'wave': {
-        // two independently-moving gaps, rarely aligned — the player has to keep
+        // two independently-moving gaps, rarely aligned ― the player has to keep
         // switching lanes instead of camping one spot, plus an occasional aimed
         // stab so sitting inside a gap isn't completely free
         if(card.timer>0.36){ card.timer=0;
@@ -2292,7 +2329,7 @@
       }
       case 'homing': {
         // fired from five staggered origins; orbs are now much bigger, and not
-        // every orb tracks the player — some fly straight, mixed in with the
+        // every orb tracks the player ― some fly straight, mixed in with the
         // trackers so the field isn't purely predictable homing. They also
         // carry a lifespan now: they blink and scatter into pellets on their
         // own well before the fight is over, instead of lingering forever
@@ -2302,7 +2339,7 @@
             if(Math.random()<0.65){
               addBullet(o.x,o.y, Math.cos(a)*30*speedMul*(isFinal?2:1), Math.sin(a)*30*speedMul*(isFinal?2:1), 40, '#ff6a5e', {homing:true, homingTurn:1.3*speedMul, speed:92*speedMul*(isFinal?2:1), glow:true, lifeSpan:5});
             } else {
-              // non-tracking orb — same look, just flies straight out
+              // non-tracking orb ― same look, just flies straight out
               addBullet(o.x,o.y, Math.cos(a)*82*speedMul*(isFinal?2:1), Math.sin(a)*82*speedMul*(isFinal?2:1), 40, '#ff9a7d', {glow:true, lifeSpan:5});
             }
             if(Math.random()<0.55){
@@ -2316,7 +2353,7 @@
       case 'laser': {
         // normal bosses: all three origins bounce-fire together, as before.
         // The last boss instead cycles one origin at a time (no stacking) with
-        // a single bounce and faster fade — the version that isn't unreadable
+        // a single bounce and faster fade ― the version that isn't unreadable
         if(isFinal){
           if(card.timer>0.55){ card.timer=0;
             card.tick=(card.tick||0)+1;
@@ -2377,7 +2414,7 @@
           for(let side=-1;side<=1;side+=2){
             addBullet(side<0?-20:W+20, boss.y+14, side<0?85*speedMul:-85*speedMul, (14+Math.random()*10)*speedMul, 13, '#ffb0e2', {glow:true});
           }
-          // extra batch from above the boss — the strip between the top edge and
+          // extra batch from above the boss ― the strip between the top edge and
           // the boss used to be permanently empty; now orbs pass through it too
           for(let i=0;i<(isFinal?2:4);i++){
             const bx = Math.random()*W;
@@ -2412,7 +2449,7 @@
         break;
       }
       case 'rain': {
-        // fast vertical rain from random points across the top — constant light pressure
+        // fast vertical rain from random points across the top ― constant light pressure
         if(card.timer>0.09){ card.timer=0;
           for(let i=0;i<3;i++){
             const bx = Math.random()*W;
@@ -2434,7 +2471,7 @@
       }
       case 'minions': {
         // the boss actually summons real charger and bomber enemies instead
-        // of imitation bullets — they can be shot, they ram/chase the player,
+        // of imitation bullets ― they can be shot, they ram/chase the player,
         // and the bomber bursts into a bullet ring when destroyed. Chargers
         // come out roughly twice as often as bombers (2 of every 3 summons).
         // For the last boss specifically, summoned minions move at half speed
@@ -2543,7 +2580,7 @@
   window.addEventListener('mousemove',(e)=>{ if(mouseDown && running) setTargetFromEvent(e.clientX,e.clientY); });
   window.addEventListener('mouseup',()=>{ mouseDown=false; });
 
-  // remove an enemy as a kill (score, stage progress, drop) — used by bombs and the awakening allies' beams.
+  // remove an enemy as a kill (score, stage progress, drop) ― used by bombs and the awakening allies' beams.
   // Shot hits have their own inline version of this; `quiet` skips death-burst bullets (a bomb clears bullets).
   function killEnemy(en, quiet){
     const idx=enemies.indexOf(en); if(idx<0) return;
@@ -2583,13 +2620,14 @@
 
   function useEmergency(){
     if(!running || player.emergencyCd>0) return;
+    usedEmergency = true;
     player.emergencyCd = 2.5; // usable any number of times, just not every single frame
     stats.emergencies++;
     player.invincible = Math.max(player.invincible, 1.5);
     flashAlpha = 0.7;
     shake = 1;
-    // wipes every enemy and every bullet/laser on screen — a true panic button,
-    // stronger than the bomb — and now hits the boss hard too, not just a dent
+    // wipes every enemy and every bullet/laser on screen ― a true panic button,
+    // stronger than the bomb ― and now hits the boss hard too, not just a dent
     enemies.forEach(en=>{ scoreKill(en); burst(en.x,en.y,en.color,14,110); });
     enemies = [];
     bullets.forEach(b=>burst(b.x,b.y,b.color,2,60));
@@ -2597,14 +2635,14 @@
     lasers = [];
     if(boss){
       const card = boss.cards[boss.cardIndex];
-      card.hp = 0; // 100% — fully clears the boss's current spell card
+      card.hp = 0; // 100% ― fully clears the boss's current spell card
       burst(boss.x,boss.y,'#ff8a7d',26,150);
     }
     updateHud();
   }
 
   // Spawn-time adjustments for small enemies, done once, the first frame an enemy exists (enemies are created in a
-  // dozen places — wave spawner, boss minions, escape clones — and this is the one spot they all pass through;
+  // dozen places ― wave spawner, boss minions, escape clones ― and this is the one spot they all pass through;
   // clones copy already-adjusted values, so they are flagged and skipped):
   //  - HP multiplier: the training setting in training, the developer-mode setting in normal runs
   //  - developer-mode initial level (normal runs): tops an enemy up to that level the way an escape would
@@ -2626,7 +2664,7 @@
       if(m!==1){ en.maxHp = Math.max(1, Math.ceil(en.maxHp*m)); en.hp = Math.max(1, Math.ceil(en.hp*m)); }
     }
   }
-  // instant pickup (same effect as the ship touching it) — used when an ally's beam hits an item
+  // instant pickup (same effect as the ship touching it) ― used when an ally's beam hits an item
   function collectItem(it){
     const idx=items.indexOf(it); if(idx<0) return;
     if(it.type==='bomb'){ player.bombs=Math.min(player.bombs+1,bombCap()); popupText(it.x,it.y-10,'BOMB +1','#ffe27d'); }
@@ -2639,7 +2677,7 @@
     for(let k=0;k<3;k++) allies.push({kind:'out', a:k*(Math.PI*2/3)+Math.PI/3, cd:0.07*k, x:player.x, y:player.y});  // small outer trio
   }
   function startAwakening(){   // shared by the button and the always-awakened cheat mode
-    player.awakening = 10;
+    player.awakening = 5;
     unlock('awaken_use');
     if(awakenInvincible()) player.invincible = Math.max(player.invincible, 10);
     spawnAllies();
@@ -2700,7 +2738,7 @@
       const bl=bullets[i]; if(pointToSegmentDist(bl.x,bl.y,al.x,al.y,x2,y2) < bl.r+6) bullets.splice(i,1);
     }
   }
-  // cheat mode only: the orbiting allies are weapons themselves — touching an enemy or the boss deals heavy damage
+  // cheat mode only: the orbiting allies are weapons themselves ― touching an enemy or the boss deals heavy damage
   // (with a short per-target cooldown so one touch isn't counted every frame), touching a bullet destroys it
   function allyContact(dt){
     for(const en of enemies){ if(en.allyHitCd>0) en.allyHitCd-=dt; }
@@ -2786,7 +2824,7 @@
   }
   function confirmAwaken(){
     if(!running || player.bombs<5 || player.awakening>0) return;
-    showConfirm('覚醒しますか？', 'ボムを5個消費し、10秒間「無敵」になり、自機の通常弾の代わりに味方6体(内側3体・外周の小型3体)のビームだけで攻撃します。外周の小型は一番近い弾・敵・アイテムを優先して2倍の頻度で撃ちます(弾・敵・アイテムのどれもない時は撃たず、画面外は狙いません。弾や敵が近くにある間はそちらを優先し、アイテムはビームが当たると即回収)。触れた敵と弾を破壊するバリアも展開され、終了時に無料のボムが発動します。', useAwaken);
+    showConfirm('覚醒しますか？', 'ボムを5個消費し、5秒間「無敵」になり、自機の通常弾の代わりに味方6体(内側3体・外周の小型3体)のビームだけで攻撃します。外周の小型は一番近い弾・敵・アイテムを優先して2倍の頻度で撃ちます(弾・敵・アイテムのどれもない時は撃たず、画面外は狙いません。弾や敵が近くにある間はそちらを優先し、アイテムはビームが当たると即回収)。触れた敵と弾を破壊するバリアも展開され、終了時に無料のボムが発動します。', useAwaken);
   }
   bombBtn.addEventListener('click', confirmBomb);
   bombBtn.addEventListener('touchstart',(e)=>{ e.stopPropagation(); e.preventDefault(); confirmBomb(); },{passive:false});
@@ -2870,7 +2908,7 @@
   function autoPilot(dt){
     // predicts each threat's position across several moments over the next
     // ~0.7s (not just one snapshot) and scores how dangerous a given point
-    // would be at the WORST of those moments — a spot can look empty right
+    // would be at the WORST of those moments ― a spot can look empty right
     // now and still have a bullet arrive there shortly after the ship does,
     // so checking only a single instant in time isn't enough
     const horizons = [0.08, 0.2, 0.35, 0.5, 0.7];
@@ -2980,8 +3018,8 @@
       if(best) targetX = best.x;
     }
     // when the boss is summoning chargers/bombers, prioritize hovering under
-    // the NEAREST MINION instead of the boss — killing them matters more than
-    // chipping the boss — but still clamp toward center so chasing one
+    // the NEAREST MINION instead of the boss ― killing them matters more than
+    // chipping the boss ― but still clamp toward center so chasing one
     // doesn't drag the ship (and the minions with it) off toward an edge,
     // where they'd escape, power up, and multiply out of control
     const minionPhase = !!(boss && !boss.intro && boss.cards[boss.cardIndex] && boss.cards[boss.cardIndex].type==='minions');
@@ -3031,9 +3069,9 @@
     // finer-grained than before so a genuinely narrow gap between two bullets
     // has a real chance of being one of the sampled points. Each candidate's
     // score now reflects the worse of (destination danger, danger anywhere
-    // along the path to it) — a longer jump is only worth it if the whole
+    // along the path to it) ― a longer jump is only worth it if the whole
     // way there is actually clear. Distances now reach further out, and reach
-    // further still when the ship is currently pinned near an edge — a short
+    // further still when the ship is currently pinned near an edge ― a short
     // leash there was leaving genuine escape routes out of reach entirely.
     const nearEdge = player.x<80 || player.x>W-80 || player.y<80 || player.y>H-80;
     const dists = nearEdge ? [0, 26, 52, 82, 120, 165, 220, 285] : [0, 24, 48, 78, 115, 160, 210];
@@ -3058,10 +3096,10 @@
     // be allowed to outweigh safety. Previously it was a single weighted sum,
     // which meant a strong pull toward "home" could make the model pick a
     // meaningfully more dangerous candidate just because it was closer to
-    // where it wanted to be — this is exactly how the ship ended up darting
+    // where it wanted to be ― this is exactly how the ship ended up darting
     // through an existing beam's path while trying to reposition. Now: first
     // find the safest achievable danger level, then ONLY consider candidates
-    // within a small tolerance of that — positioning preference can only
+    // within a small tolerance of that ― positioning preference can only
     // break ties among comparably-safe options, never trade safety away.
     const SAFETY_TOL = 0.04;
     const safeCandidates = candidates.filter(c => c.danger <= bestDangerOnly + SAFETY_TOL);
@@ -3076,7 +3114,7 @@
       if(score<bestScore){ bestScore=score; bestX=c.px; bestY=c.py; }
     });
 
-    // refine with a small local search around the chosen spot — the coarse
+    // refine with a small local search around the chosen spot ― the coarse
     // ring above finds the right neighborhood, this finds the exact gap.
     // Still path-checked from the ship's CURRENT position, not just from the
     // coarse candidate, since that's the actual route the ship will take.
@@ -3100,7 +3138,7 @@
     }
 
     // ease toward the chosen spot when calm (avoids twitchy back-and-forth
-    // between similarly-safe candidates) — but when there's real danger,
+    // between similarly-safe candidates) ― but when there's real danger,
     // smoothing is exactly the bug: interpolating between last frame's safe
     // spot and this frame's safe spot can draw a path straight through
     // wherever the danger moved to in between. So when it's not calm, snap
@@ -3119,7 +3157,7 @@
       summonFinalBoss();
     }
     // The minion spell keeps feeding in enemies that soak up nearly every shot, so the boss barely takes
-    // damage from shooting alone (measured: ~25% of its HP in two minutes — and killing the minions faster
+    // damage from shooting alone (measured: ~25% of its HP in two minutes ― and killing the minions faster
     // doesn't touch the boss's HP at all). So spend resources on it: awaken when there are 5 bombs (x10 damage,
     // and the allies' beams pierce straight through the swarm into the boss); otherwise bomb when clogged.
     if(minionPhase && boss.isFinalBoss && running && player.awakening<=0){
@@ -3149,11 +3187,11 @@
     if(alwaysAwaken && player.awakening<=0) startAwakening();   // cheat mode: awakened from the start, forever
     if(player.awakening>0){
       player.awakening -= dt;
-      if(alwaysAwaken && player.awakening<=0) player.awakening = 10;   // never runs out
+      if(alwaysAwaken && player.awakening<=0) player.awakening = 5;   // never runs out
       if(awakenInvincible()) player.invincible = Math.max(player.invincible, 0.2);
       updateAllies(dt);
       if(player.awakening<=0){ endAwakening(); }
-      // the barrier: anything — bullet or enemy — that touches it is destroyed outright
+      // the barrier: anything ― bullet or enemy ― that touches it is destroyed outright
       const barrierR = awakenBarrier() ? player.r*11 : 0;   // cheat mode can switch the barrier off
       for(let i=bullets.length-1;i>=0 && barrierR>0;i--){
         const b=bullets[i];
@@ -3260,15 +3298,15 @@
           sp.t += dt*rampDifficulty*DIFF.spawnRate;
           if(sp.t>=sp.interval){ sp.t=0; sp.fn(sp); }
         });
-        // keep spawning stage waves only until the kill target is reached —
+        // keep spawning stage waves only until the kill target is reached ―
         // the boss now appears once the stage enemies are actually cleared out,
         // not purely on a timer (a generous time cap still guards against
         // a stage that somehow never empties)
         if(stageKills < stageKillTarget){
           spawnTimerFairy += dt;
-          // higher preset levels spawn far less often — a screen full of
+          // higher preset levels spawn far less often ― a screen full of
           // Lv4 enemies at normal frequency would be unplayable
-          // any preset power level uses the same reduced spawn rate — no need
+          // any preset power level uses the same reduced spawn rate ― no need
           // to keep stacking it higher for Lv3/Lv4 on top of already-tougher enemies
           const freqMult = stageOnlyPowerLevel>0 ? 4 : 1;
           if(spawnTimerFairy > (3.4/DIFF.spawnRate/(devConfig.spawnMult||1))*freqMult){
@@ -3289,7 +3327,7 @@
         }
         const cleared = stageKills >= stageKillTarget && enemies.length===0;
         if(quickMode==='stageOnly'){
-          // endless stage practice/scoring run — a "wave" clearing just resets
+          // endless stage practice/scoring run ― a "wave" clearing just resets
           // the counter and keeps going; a boss never appears, but each
           // cleared wave now refills one life as a reward for surviving it
           if(cleared){
@@ -3302,7 +3340,7 @@
           }
         } else if(cleared && time >= 12){
           // the boss now ONLY appears once the stage enemies are genuinely
-          // all defeated — no time-based fallback that could summon it early
+          // all defeated ― no time-based fallback that could summon it early
           startBoss();
         }
       }
@@ -3330,7 +3368,7 @@
       if(b.lifeSpan!==undefined){
         b.lifeSpan -= dt;
         if(b.lifeSpan<=0){ bullets.splice(i,1); continue; }
-        // shrink smoothly over the final 2.5s instead of bursting — quiet fade-out
+        // shrink smoothly over the final 2.5s instead of bursting ― quiet fade-out
         const shrinkWindow=2.5;
         b.shrinkScale = b.lifeSpan < shrinkWindow ? Math.max(0, b.lifeSpan/shrinkWindow) : 1;
         if(b.hitR===undefined) b.hitR=b.r;
@@ -3339,7 +3377,7 @@
         b.chargeDelay -= dt;
         if(b.chargeDelay<=0){
           // snap onto the player's current position and rush it, like the
-          // charger enemy's dash — telegraphed by its slow drift beforehand
+          // charger enemy's dash ― telegraphed by its slow drift beforehand
           b.charged = true;
           const dx=player.x-b.x, dy=player.y-b.y, d=Math.hypot(dx,dy)||1;
           b.vx = (dx/d)*b.chargeSpeed;
@@ -3425,7 +3463,7 @@
         }
         if(maxed){
           // a fully-leveled charger trades its fast ram for a slow crawl that
-          // constantly spews heavy bullet rings — a real bullet-hell threat
+          // constantly spews heavy bullet rings ― a real bullet-hell threat
           // instead of just a dodge check
           if(en.chargerShootCd===undefined) en.chargerShootCd = 0.4;
           en.chargerShootCd -= dt;
@@ -3475,7 +3513,7 @@
           en.x = en.orbitCx + Math.cos(en.orbitAngle)*en.orbitR;
           en.y = en.orbitCy + Math.sin(en.orbitAngle)*en.orbitR*0.5;
         } else if(en.type==='bomber'){
-          // homes in on the player slowly instead of just falling — a real
+          // homes in on the player slowly instead of just falling ― a real
           // approaching threat rather than a passive drifter
           const dx=player.x-en.x, dy=player.y-en.y, d=Math.hypot(dx,dy)||1;
           const speed=64*DIFF.bulletSpeed*(en.speedMult||1);
@@ -3558,7 +3596,7 @@
         stats.escapes++;
         en.escapeCount = (en.escapeCount||0)+1;
         if(en.escapeCount<=3){
-          // escaped off-screen instead of being defeated — comes back fully
+          // escaped off-screen instead of being defeated ― comes back fully
           // healed, bigger, and hitting harder. Applies to every enemy type
           // now (up to 3 times), so nothing dies-by-fleeing unbuffed anymore
           en.maxHp = Math.ceil(en.maxHp*1.6);
@@ -3570,7 +3608,7 @@
           en.vy = Math.abs(en.vy)||45;
           if(en.type==='charger'){
             en.state='approach'; en.chargeDelay=0.6;
-            // pack-spawn only on the FIRST escape — doing this every time would
+            // pack-spawn only on the FIRST escape ― doing this every time would
             // compound exponentially (each clone could escape and multiply again)
             // and risk overwhelming the game
             if(en.escapeCount===1){
@@ -3595,7 +3633,7 @@
           continue;
         }
         if(en.escapeCount===4){
-          // one last reprieve — comes back exactly once more, but this time
+          // one last reprieve ― comes back exactly once more, but this time
           // with no heal and no further growth (HP stays exactly as it was)
           en.x = Math.max(60, Math.min(W-60, en.x));
           en.y = -40;
@@ -3614,7 +3652,7 @@
         if((en.escapeCount||0)>=5) unlock('last_escape');   // a LAST-stage enemy gets away for good
         enemies.splice(i,1);
         // a permanent off-screen exit (never actually killed) is tracked
-        // separately from real kills — used only so training's exact-total
+        // separately from real kills ― used only so training's exact-total
         // clear condition can't stall forever, but it must NOT count toward
         // the normal stage's boss-trigger threshold (that should require
         // genuinely defeating enemies, not just letting them flee)
@@ -3702,7 +3740,7 @@
   }
 
   function findHomingTarget(s){
-    // prefer a nearby enemy (e.g. a summoned charger/bomber) over the boss —
+    // prefer a nearby enemy (e.g. a summoned charger/bomber) over the boss ―
     // clearing minions is more urgent than chipping the boss with an amulet
     let best=null, bestD=Infinity;
     enemies.forEach(en=>{
@@ -3797,14 +3835,14 @@
     returnToTitle();
   });
 
-  // two original chibi-style silhouettes for "character mode" — deliberately
+  // two original chibi-style silhouettes for "character mode" ― deliberately
   // different designs for the player (ally) vs enemies (foe), so they don't
   // read as the same character in different colors. Both are generic and
   // unbranded, not modeled on any specific existing character.
   function drawChibi(x,y,r,color){
     ctx.save();
     ctx.translate(x,y);
-    // flared skirt with a wavy hem — reads clearly as a dress
+    // flared skirt with a wavy hem ― reads clearly as a dress
     ctx.fillStyle=color;
     ctx.beginPath();
     ctx.moveTo(0,r*0.7);
@@ -3966,7 +4004,7 @@
         ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2;
         ctx.beginPath(); ctx.arc(en.x,en.y,en.r*1.25,0,Math.PI*2); ctx.stroke();
       } else if(en.type==='guardian'){
-        // largest, toughest stage enemy — thick core with a slow-rotating hex armor ring
+        // largest, toughest stage enemy ― thick core with a slow-rotating hex armor ring
         ctx.beginPath(); ctx.arc(en.x,en.y,en.r,0,Math.PI*2); ctx.fill();
         ctx.strokeStyle='#c8aef2'; ctx.lineWidth=3;
         ctx.beginPath(); ctx.arc(en.x,en.y,en.r,0,Math.PI*2); ctx.stroke();
@@ -3982,7 +4020,7 @@
         ctx.closePath(); ctx.stroke();
         ctx.restore();
       } else if(en.type==='wall'){
-        // literal blocker — a rounded slab with a HP-fraction plating overlay
+        // literal blocker ― a rounded slab with a HP-fraction plating overlay
         const w=en.r*1.9, h=en.r*1.3;
         ctx.save();
         ctx.translate(en.x,en.y);
@@ -4091,7 +4129,7 @@
       ctx.restore();
     }
 
-    // lasers — drawn as a connected path so ricochets off the walls are visible
+    // lasers ― drawn as a connected path so ricochets off the walls are visible
     lasers.forEach(l=>{
       ctx.save();
       ctx.beginPath();
@@ -4222,7 +4260,7 @@
           ctx.restore();
         });
         ctx.restore();
-        // the awakening barrier — a large glowing ring that visibly marks the
+        // the awakening barrier ― a large glowing ring that visibly marks the
         // kill-on-touch radius around the player
         const barrierR = awakenBarrier() ? player.r*11 : 0;
         if(barrierR>0){
@@ -4263,5 +4301,12 @@
   requestAnimationFrame(loop);
 })();
 </script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script>
+
 </body>
 </html>
